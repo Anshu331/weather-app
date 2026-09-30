@@ -52,7 +52,7 @@ type config struct {
 }
 
 // parseConfig reads flags, falling back to WEATHER_* environment variables,
-// then to defaults. Flags win over environment variables.
+// then to platform conventions (PORT, VERCEL), then to defaults.
 func parseConfig(args []string, getenv func(string) string, stderr io.Writer) (config, error) {
 	env := func(key, def string) string {
 		if v := getenv(key); v != "" {
@@ -86,11 +86,23 @@ func parseConfig(args []string, getenv func(string) string, stderr io.Writer) (c
 		return config{}, err
 	}
 
+	// PaaS platforms (Vercel, Render, Cloud Run, Heroku) assign the port via
+	// PORT and route external traffic to it, so bind all interfaces there.
+	defaultAddr := "localhost:8080"
+	if port := getenv("PORT"); port != "" {
+		defaultAddr = ":" + port
+	}
+	// Vercel's filesystem is read-only apart from the temp directory.
+	defaultDataDir := "data"
+	if getenv("VERCEL") != "" {
+		defaultDataDir = filepath.Join(os.TempDir(), "weatherapp")
+	}
+
 	var c config
 	fs := flag.NewFlagSet("weatherapp", flag.ContinueOnError)
 	fs.SetOutput(stderr)
-	fs.StringVar(&c.addr, "addr", env("WEATHER_ADDR", "localhost:8080"), "HTTP listen address")
-	fs.StringVar(&c.dataDir, "data-dir", env("WEATHER_DATA_DIR", "data"), "directory for cache and recent searches")
+	fs.StringVar(&c.addr, "addr", env("WEATHER_ADDR", defaultAddr), "HTTP listen address")
+	fs.StringVar(&c.dataDir, "data-dir", env("WEATHER_DATA_DIR", defaultDataDir), "directory for cache and recent searches")
 	fs.StringVar(&c.provider, "provider", env("WEATHER_PROVIDER", "openmeteo"), "weather provider: openmeteo or mock")
 	fs.DurationVar(&c.upstreamTO, "upstream-timeout", upstreamTO, "timeout for calls to the weather API")
 	fs.DurationVar(&c.freshFor, "fresh-for", freshFor, "serve cached weather without refreshing for this long")

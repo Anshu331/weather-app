@@ -47,6 +47,18 @@ docker build -t weatherapp .
 docker run -p 8080:8080 -v weather-data:/data weatherapp
 ```
 
+### Deploying to Vercel
+
+`vercel.json` selects Vercel's Go framework preset and builds `./cmd/weatherapp`.
+The app listens on the `PORT` that Vercel provides, and when the `VERCEL`
+environment variable is set it stores data in the temp directory, which is the
+only writable location. Import the repo in Vercel and deploy; no extra settings
+are needed.
+
+On Vercel the cache and recent searches only live as long as a function
+instance, so the "survives restarts" part of the outage fallback doesn't apply.
+Recent searches are also shared by all visitors there (see Known limitations).
+
 ## Configuration
 
 Every flag can also be set with an environment variable. When both are set, the
@@ -54,9 +66,9 @@ flag wins.
 
 | Flag | Env var | Default | Purpose |
 |---|---|---|---|
-| `-addr` | `WEATHER_ADDR` | `localhost:8080` | Listen address |
+| `-addr` | `WEATHER_ADDR` | `localhost:8080`, or `:$PORT` if `PORT` is set | Listen address |
 | `-provider` | `WEATHER_PROVIDER` | `openmeteo` | `openmeteo` or `mock` |
-| `-data-dir` | `WEATHER_DATA_DIR` | `data` | Where the cache and recent searches are stored |
+| `-data-dir` | `WEATHER_DATA_DIR` | `data` (temp dir on Vercel) | Where the cache and recent searches are stored |
 | `-fresh-for` | `WEATHER_FRESH_FOR` | `10m` | How long cached weather is served without refreshing |
 | `-max-stale` | `WEATHER_MAX_STALE` | `24h` | Oldest cached weather shown when the API is down |
 | `-upstream-timeout` | `WEATHER_UPSTREAM_TIMEOUT` | `5s` | Timeout for each call to the weather API |

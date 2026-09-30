@@ -1,5 +1,7 @@
 # Build output
 /bin/
+/server
+.vercel/
 *.exe
 *.test
 *.out
