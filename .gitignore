@@ -1,0 +1,15 @@
+# Build output
+/bin/
+*.exe
+*.test
+*.out
+coverage.*
+
+# Runtime data (cache + recent searches)
+/data/
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
