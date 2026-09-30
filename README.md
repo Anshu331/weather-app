@@ -22,15 +22,15 @@ you use the offline mock provider.
 
 ```sh
 # Run against the live Open-Meteo API
-go run ./cmd/weatherapp
+go run ./cmd/server
 # then open http://localhost:8080
 
 # Run fully offline with synthetic data
 # (knows London, Paris, Springfield, Tokyo, and a few other places)
-go run ./cmd/weatherapp -provider mock
+go run ./cmd/server -provider mock
 
 # Build a binary
-go build -o bin/weatherapp ./cmd/weatherapp
+go build -o bin/weatherapp ./cmd/server
 
 # Tests
 go test ./...
@@ -49,7 +49,8 @@ docker run -p 8080:8080 -v weather-data:/data weatherapp
 
 ### Deploying to Vercel
 
-`vercel.json` selects Vercel's Go framework preset and builds `./cmd/weatherapp`.
+`vercel.json` selects Vercel's Go framework preset, which finds the entrypoint at
+`cmd/server/main.go` (it only looks in `main.go`, `cmd/api` or `cmd/server`).
 The app listens on the `PORT` that Vercel provides, and when the `VERCEL`
 environment variable is set it stores data in the temp directory, which is the
 only writable location. Import the repo in Vercel and deploy; no extra settings
@@ -80,7 +81,7 @@ flag wins.
 1. Run the app normally and look up a couple of places.
 2. Stop it and restart it pointing at an address where nothing is listening:
    ```sh
-   go run ./cmd/weatherapp -fresh-for 0s \
+   go run ./cmd/server -fresh-for 0s \
      -forecast-url http://127.0.0.1:9/v1/forecast \
      -geocoding-url http://127.0.0.1:9/v1/search
    ```
@@ -127,7 +128,7 @@ cached, and `500` for internal errors.
 ## Project structure
 
 ```
-cmd/weatherapp/        entry point: config, wiring, graceful shutdown
+cmd/server/            entry point: config, wiring, graceful shutdown
 internal/weather/      domain model, validation, WMO codes, highlights, provider interfaces
 internal/openmeteo/    Open-Meteo client (implements weather.Provider) + recorded fixtures
 internal/mock/         deterministic offline provider

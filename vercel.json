@@ -1,5 +1,4 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "go",
-  "buildCommand": "go build -ldflags '-s -w' -o server ./cmd/weatherapp"
+  "framework": "go"
 }
