@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"slices"
 	"strings"
 	"time"
 	"unicode"
@@ -219,6 +220,8 @@ func (s *Service) result(loc weather.Location, r weather.Report, f Freshness, no
 		loc.Timezone = r.Location.Timezone
 	}
 	r.Location = loc
+	r.Hourly = dropElapsed(r.Hourly, now, time.Hour, func(h weather.HourlyPoint) time.Time { return h.Time })
+	r.Daily = dropElapsed(r.Daily, now, 24*time.Hour, func(d weather.DailyForecast) time.Time { return d.Date })
 
 	if err := s.history.Add(loc); err != nil {
 		s.log.Warn("failed to persist recent searches", "err", err)
@@ -229,6 +232,14 @@ func (s *Service) result(loc weather.Location, r weather.Report, f Freshness, no
 		age = 0
 	}
 	return WeatherResult{Report: r, Freshness: f, Age: age, AgeText: FormatAge(age), Warning: warning}
+}
+
+// dropElapsed removes forecast periods that ended before now. This matters
+// when serving an older cached report, whose forecast starts in the past.
+func dropElapsed[T any](items []T, now time.Time, period time.Duration, start func(T) time.Time) []T {
+	return slices.DeleteFunc(slices.Clone(items), func(it T) bool {
+		return !start(it).Add(period).After(now)
+	})
 }
 
 // Recent returns recently viewed locations, most recent first.

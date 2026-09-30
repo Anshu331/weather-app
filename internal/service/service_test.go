@@ -32,11 +32,19 @@ func (f *fakeProvider) Forecast(_ context.Context, loc weather.Location) (weathe
 	if f.forecastErr != nil {
 		return weather.Report{}, f.forecastErr
 	}
-	return weather.Report{
+	now := f.now()
+	r := weather.Report{
 		Location:  loc,
-		Current:   weather.Current{Temperature: 20},
-		FetchedAt: f.now(),
-	}, nil
+		Current:   weather.Current{Time: now, Temperature: 20},
+		FetchedAt: now,
+	}
+	for i := 0; i < 24; i++ {
+		r.Hourly = append(r.Hourly, weather.HourlyPoint{Time: now.Add(time.Duration(i) * time.Hour)})
+	}
+	for i := 0; i < 3; i++ {
+		r.Daily = append(r.Daily, weather.DailyForecast{Date: now.Truncate(24*time.Hour).AddDate(0, 0, i)})
+	}
+	return r, nil
 }
 
 // clock is a manually advanced clock.
@@ -132,6 +140,29 @@ func TestWeatherFallsBackToStaleCacheWhenProviderFails(t *testing.T) {
 	}
 	if r.Report.Current.Temperature != 20 {
 		t.Errorf("expected cached report contents, got %+v", r.Report.Current)
+	}
+}
+
+func TestStaleReportDropsElapsedForecastPeriods(t *testing.T) {
+	f := newFixture(t) // clock starts at 12:00
+	ctx := context.Background()
+	_, _ = f.svc.Weather(ctx, london)
+
+	f.clock.Advance(5*time.Hour + 30*time.Minute) // 17:30
+	f.provider.forecastErr = errDown
+
+	r, err := f.svc.Weather(ctx, london)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := r.Report.Hourly[0].Time.Hour(); got != 17 {
+		t.Errorf("first hourly point should be the current hour (17:00), got %02d:00", got)
+	}
+	if len(r.Report.Hourly) != 19 {
+		t.Errorf("got %d hourly points, want 19", len(r.Report.Hourly))
+	}
+	if len(r.Report.Daily) != 3 {
+		t.Errorf("today has not ended, so all 3 days should remain; got %d", len(r.Report.Daily))
 	}
 }
 
