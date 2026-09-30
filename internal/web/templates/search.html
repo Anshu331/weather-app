@@ -1,0 +1,25 @@
+{{define "content"}}
+{{with .Search}}
+  {{if .Warning}}<div class="banner warning" role="status">{{.Warning}}</div>{{end}}
+
+  <section class="card">
+    {{if .Locations}}
+      <h1>Choose a location for "{{.Query}}"</h1>
+      <ul class="results">
+        {{range .Locations}}
+        <li>
+          <a href="{{weatherURL .}}">
+            <strong>{{.Name}}</strong>
+            <span class="muted">{{if .Region}}{{.Region}}, {{end}}{{.Country}}</span>
+          </a>
+        </li>
+        {{end}}
+      </ul>
+    {{else}}
+      <h1>No places found for "{{.Query}}"</h1>
+      <p>Check the spelling, or try a nearby larger town. Searches match place names only
+         (not postcodes or street addresses).</p>
+    {{end}}
+  </section>
+{{end}}
+{{end}}

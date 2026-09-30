@@ -1,0 +1,12 @@
+{{define "content"}}
+<section class="card intro">
+  <h1>Check the weather anywhere</h1>
+  <p>Search for a city, town or village by name, e.g. <a href="/search?q=London">London</a>,
+     <a href="/search?q=Springfield">Springfield</a> or <a href="/search?q=Tokyo">Tokyo</a>.
+     If several places share a name you'll be able to choose the right one.</p>
+  {{if not .Recent}}
+  <p class="muted">Places you look up will appear under "Recent searches" and stay available,
+     from saved data, even if the weather service is briefly unavailable.</p>
+  {{end}}
+</section>
+{{end}}

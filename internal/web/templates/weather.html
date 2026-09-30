@@ -1,0 +1,88 @@
+{{define "content"}}
+{{with .Weather}}
+{{$r := .Report}}
+{{$today := firstDay $r.Daily}}
+
+{{if .Warning}}<div class="banner warning" role="status">{{.Warning}}</div>{{end}}
+
+<section class="card current" aria-labelledby="loc-heading">
+  <div class="current-head">
+    <div>
+      <h1 id="loc-heading">{{$r.Location.Name}}</h1>
+      <p class="muted">{{$r.Location.Label}}</p>
+    </div>
+    <p class="freshness freshness-{{.Freshness}}">
+      {{if .Stale}}Saved data{{else}}Updated{{end}}
+      {{clock $r.Current.Time}} local time
+      <span class="muted">({{.AgeText}} ago)</span>
+    </p>
+  </div>
+
+  <div class="current-main">
+    <div class="temp">{{temp $r.Current.Temperature}}</div>
+    <div>
+      <div class="condition">{{$r.Current.Condition}}</div>
+      <div class="muted">Feels like {{temp $r.Current.FeelsLike}}
+        &middot; H {{temp $today.TempMax}} / L {{temp $today.TempMin}}</div>
+    </div>
+  </div>
+
+  {{with $.Highlights}}
+  <ul class="highlights">
+    {{range .}}<li>{{.}}</li>{{end}}
+  </ul>
+  {{end}}
+
+  <dl class="details">
+    <div><dt>Wind</dt><dd>{{printf "%.0f" $r.Current.WindSpeed}} km/h {{$r.Current.WindCompass}}</dd></div>
+    <div><dt>Gusts</dt><dd>{{printf "%.0f" $r.Current.WindGusts}} km/h</dd></div>
+    <div><dt>Humidity</dt><dd>{{$r.Current.Humidity}}%</dd></div>
+    <div><dt>Pressure</dt><dd>{{printf "%.0f" $r.Current.Pressure}} hPa</dd></div>
+    <div><dt>Cloud cover</dt><dd>{{$r.Current.CloudCover}}%</dd></div>
+    <div><dt>Precipitation</dt><dd>{{printf "%.1f" $r.Current.Precipitation}} mm</dd></div>
+    <div><dt>UV index (max)</dt><dd>{{printf "%.0f" $today.UVIndexMax}} {{$today.UVLevel}}</dd></div>
+    <div><dt>Sunrise / sunset</dt><dd>{{clock $today.Sunrise}} / {{clock $today.Sunset}}</dd></div>
+  </dl>
+</section>
+
+{{if $r.Hourly}}
+<section class="card" aria-labelledby="hourly-heading">
+  <h2 id="hourly-heading">Next 24 hours</h2>
+  <ol class="hourly">
+    {{range $r.Hourly}}
+    <li>
+      <span class="hour">{{clock .Time}}</span>
+      <span class="hour-temp">{{temp .Temperature}}</span>
+      <span class="hour-cond">{{.Condition}}</span>
+      <span class="rain" title="Chance of precipitation">{{.PrecipProbability}}% rain</span>
+    </li>
+    {{end}}
+  </ol>
+</section>
+{{end}}
+
+<section class="card" aria-labelledby="daily-heading">
+  <h2 id="daily-heading">{{len $r.Daily}}-day forecast</h2>
+  <div class="table-wrap">
+  <table class="daily">
+    <thead>
+      <tr><th scope="col">Day</th><th scope="col">Conditions</th><th scope="col">Low / High</th>
+          <th scope="col">Rain</th><th scope="col">Wind</th><th scope="col">UV</th></tr>
+    </thead>
+    <tbody>
+      {{range $r.Daily}}
+      <tr>
+        <th scope="row">{{day .Date}}</th>
+        <td>{{.Condition}}</td>
+        <td>{{temp .TempMin}} / {{temp .TempMax}}</td>
+        <td>{{.PrecipProbability}}% &middot; {{printf "%.1f" .PrecipSum}} mm</td>
+        <td>{{printf "%.0f" .WindSpeedMax}} km/h</td>
+        <td>{{printf "%.0f" .UVIndexMax}}</td>
+      </tr>
+      {{end}}
+    </tbody>
+  </table>
+  </div>
+</section>
+{{end}}
+{{end}}

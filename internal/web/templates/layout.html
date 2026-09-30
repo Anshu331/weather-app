@@ -1,0 +1,40 @@
+{{define "layout"}}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{.Title}}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/">Weather</a>
+    <form class="search" action="/search" method="get" role="search">
+      <label for="q" class="visually-hidden">Search for a city or town</label>
+      <input id="q" name="q" type="search" value="{{.Query}}" placeholder="Search for a city or town"
+             minlength="2" maxlength="100" required autocomplete="off">
+      <button type="submit">Search</button>
+    </form>
+  </header>
+
+  <div class="page">
+    <main>
+      {{template "content" .}}
+    </main>
+
+    {{if .Recent}}
+    <aside class="recent" aria-labelledby="recent-heading">
+      <h2 id="recent-heading">Recent searches</h2>
+      <ul>
+        {{range .Recent}}<li><a href="{{weatherURL .}}">{{.Label}}</a></li>{{end}}
+      </ul>
+    </aside>
+    {{end}}
+  </div>
+
+  <footer class="site-footer">
+    Weather data by <a href="https://open-meteo.com/" rel="noopener">Open-Meteo.com</a>
+    (CC BY 4.0). All times are local to the location shown.
+  </footer>
+</body>
+</html>{{end}}
