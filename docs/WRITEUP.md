@@ -274,4 +274,9 @@ pointers.
 
 ## Time spent
 
-Roughly **_N_ hours** in total. _(To be filled in by the author.)_
+Roughly **3 hours** in total, broken down approximately as:
+
+- ~20m: reading the brief, listing open questions and assumptions, choosing the API and architecture
+- ~1h30m: implementation and tests, layer by layer (domain, API client, storage, service, web)
+- ~40m: manual end-to-end testing (live API, simulated outage, mobile layout) and fixing what that found
+- ~30m: README and this write-up
